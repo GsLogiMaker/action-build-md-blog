@@ -27,12 +27,30 @@
 <body>
 <nav class="nav">
     <div class="nav__left">
-        <a href="/">Home</a>
-        <a href="/about">About</a>
+        <% Object.entries(siteConfig.navigation || {}).forEach(([platform, info]) => { %>
+            <% if (!info) return; %>
+            <% 
+                // Build attribute string from all keys except "body"
+                const attrs = Object.entries(info)
+                    .filter(([key]) => key !== 'body')
+                    .map(([key, value]) => `${key}="${value}"`)
+                    .join(' ');
+            %>
+            <a <%- attrs %>><%- info.body %></a>
+        <% }); %>
     </div>
+
     <div class="nav__right">
-        <a target="_blank" href="https://github.com/<%- siteConfig.social.github %>" class="link-github">GitHub</a>
-        <a target="_blank" href="https://twitter.com/<%- siteConfig.social.twitter %>" class="link-twitter">Twitter</a>
-        <a href="mailto:<%- siteConfig.owner.email %>" class="link-email">Email</a>
+        <% Object.entries(siteConfig.social || {}).forEach(([platform, info]) => { %>
+            <% if (!info) return; %>
+            <% 
+                // Build attribute string from all keys except "body"
+                const attrs = Object.entries(info)
+                    .filter(([key]) => key !== 'body')
+                    .map(([key, value]) => `${key}="${value}"`)
+                    .join(' ');
+            %>
+            <a <%- attrs %>><%- info.body %></a>
+        <% }); %>
     </div>
 </nav>
