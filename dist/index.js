@@ -297,52 +297,70 @@ function prepareTheme(configuration) {
             });
         }
         function prepareBlogPosts() {
-            return __awaiter(this, void 0, void 0, function* () {
-                (0, core_1.info)('Preparing blog posts');
-                const postFiles = fs_1.default.readdirSync(postsDir);
-                const posts = [];
-                for (let contentFile of postFiles) {
-                    const contentFilePath = path_1.default.join(postsDir, contentFile);
-                    const content = fs_1.default.readFileSync(contentFilePath, 'utf-8');
-                    const parsed = (0, front_matter_1.default)(content);
-                    let { title, date, permalink, externalUrl } = parsed.attributes;
-                    if (!date) {
-                        date = (0, dayjs_1.default)().format('ddd, MMMM DD, YYYY');
+          return __awaiter(this, void 0, void 0, function* () {
+              (0, core_1.info)('Preparing blog posts');
+              const postFiles = fs_1.default.readdirSync(postsDir);
+              const posts = [];
+              for (let contentFile of postFiles) {
+                  const contentFilePath = path_1.default.join(postsDir, contentFile);
+                  const content = fs_1.default.readFileSync(contentFilePath, 'utf-8');
+                  const parsed = (0, front_matter_1.default)(content);
+                  let { title, date, permalink, externalUrl } = parsed.attributes;
+                  if (!date) {
+                      date = (0, dayjs_1.default)().format('ddd, MMMM DD, YYYY');
                     }
                     else {
-                        date = (0, dayjs_1.default)(date).format('ddd, MMMM DD, YYYY');
-                    }
-                    const postHtml = htmlConverter.makeHtml(parsed.body);
-                    const fullFileName = (permalink || (0, slugify_1.default)(title).toLowerCase()).replace(/^\//, '');
-                    const fullFileNameParts = fullFileName.replace(/\/$/, '').split('/');
-                    const fileName = fullFileNameParts.pop() || '';
-                    const nestedPostDir = fullFileNameParts.join('/');
-                    if (nestedPostDir) {
-                        fs_extra_1.default.ensureDirSync(path_1.default.join(outputDir, nestedPostDir));
-                    }
+                      date = (0, dayjs_1.default)(date).format('ddd, MMMM DD, YYYY');
+                  }
+                  const postHtml = htmlConverter.makeHtml(parsed.body);
+                  const fullFileName = (permalink || (0, slugify_1.default)(title).toLowerCase()).replace(/^\//, '');
+                  const fullFileNameParts = fullFileName.replace(/\/$/, '').split('/');
+                  const fileName = fullFileNameParts.pop() || '';
+                  const nestedPostDir = fullFileNameParts.join('/');
+                  if (nestedPostDir) {
+                      fs_extra_1.default.ensureDirSync(path_1.default.join(outputDir, nestedPostDir));
+                  }
 
-                    const siteConfig = require(path_1.default.join(configuration.repoPath, './site.json'));
-                    const postMeta = {
-                        title,
-                        date,
-                        permalink: path_1.default.join('/', siteConfig.baseUrl, nestedPostDir, fileName),
-                        externalUrl,
-                        html: postHtml
-                    };
-                    const postFileTemplate = path_1.default.join(themePath, 'post.ejs');
-                    const populatedTemplate = yield ejs_1.default.renderFile(postFileTemplate, {
-                        post: postMeta,
-                        siteConfig
-                    });
-                    fs_1.default.writeFileSync(path_1.default.join(outputDir, nestedPostDir, `${fileName}.html`), populatedTemplate);
-                    posts.push(postMeta);
-                }
+                  const siteConfig = require(path_1.default.join(configuration.repoPath, './site.json'));
+                  const postMeta = {
+                      title,
+                      date,
+                      permalink: path_1.default.join('/', siteConfig.baseUrl, nestedPostDir, fileName),
+                      externalUrl,
+                      html: postHtml
+                  };
+
+                  const jsonOutputPath = path_1.default.join(
+                      outputDir,
+                      nestedPostDir,
+                      `${fileName}.json`
+                  );
+
+                  fs_1.default.writeFileSync(
+                      jsonOutputPath,
+                      JSON.stringify(parsed.attributes, null, 2),
+                      'utf-8'
+                  );
+
+                  const postFileTemplate = path_1.default.join(themePath, 'post.ejs');
+                  const populatedTemplate = yield ejs_1.default.renderFile(postFileTemplate, {
+                      post: postMeta,
+                      siteConfig
+                  });
+
+                  fs_1.default.writeFileSync(
+                      path_1.default.join(outputDir, nestedPostDir, `${fileName}.html`),
+                      populatedTemplate
+                  );
+
+                  posts.push(postMeta);
+              }
                 posts.sort(function(a, b){
                   return new Date(a.date) - new Date(b.date);
-                });
-                return posts;
-            });
-        }
+              });
+              return posts;
+          });
+      }
         function prepareAbout() {
             return __awaiter(this, void 0, void 0, function* () {
                 (0, core_1.info)('Preparing about page');
