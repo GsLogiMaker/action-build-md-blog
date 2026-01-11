@@ -112,12 +112,10 @@ export async function prepareTheme(configuration: ConfigurationType) {
         fsExtra.ensureDirSync(path.join(outputDir, nestedPostDir));
       }
 
+      parsed.attributes.permalink = path.join('/', siteConfig.baseUrl, nestedPostDir, fileName);
       const postMeta = {
-        title,
-        date,
-        permalink: path.join('/', siteConfig.baseUrl, nestedPostDir, fileName),
-        externalUrl,
-        html: postHtml
+        html: postHtml,
+        ...parsed.attributes
       };
 
       const postFileTemplate = path.join(themePath, 'post.ejs');
