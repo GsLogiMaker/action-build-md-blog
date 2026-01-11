@@ -5,3 +5,11 @@
 <script>hljs.highlightAll();</script>
 </body>
 </html>
+
+<% if (post && post.navigation && post.navigation.length) { %>
+<nav class="nav">
+    <% post.navigation.forEach(function(item) { %>
+        <a href="<%- item.href %>"><%- item.body %></a>
+    <% }) %>
+</nav>
+<% } %>

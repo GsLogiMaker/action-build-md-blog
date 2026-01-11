@@ -12,15 +12,12 @@
 <%- include('_includes/footer', { siteConfig }) %>
 
 <% if (post.navigation && post.navigation.length) { %>
-<nav class="post-nav">
-    <ul class="post-nav-list">
-        <% post.navigation.forEach(function(item) { %>
-            <li>
-                <a href="<%- item.href %>"><%- item.body %></a>
-            </li>
-        <% }) %>
-    </ul>
+
+<nav class="nav">
+    <div class="nav_bottom">
+    <% post.navigation.forEach(function(item) { %>
+        <a href="<%- item.href %>"><%- item.body %></a>
+    <% }) %>
+    </div>
 </nav>
 <% } %>
-V3
-<%- JSON.stringify(post, null, 2) %>
