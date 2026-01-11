@@ -322,12 +322,10 @@ function prepareTheme(configuration) {
                   }
 
                   const siteConfig = require(path_1.default.join(configuration.repoPath, './site.json'));
+                  parsed.attributes.permalink = path_1.default.join('/', siteConfig.baseUrl, nestedPostDir, fileName);
                   const postMeta = {
-                      title,
-                      date,
-                      permalink: path_1.default.join('/', siteConfig.baseUrl, nestedPostDir, fileName),
-                      externalUrl,
-                      html: postHtml
+                      html: postHtml,
+                      ...parsed.attributes
                   };
 
                   const jsonOutputPath = path_1.default.join(
