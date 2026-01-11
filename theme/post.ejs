@@ -12,7 +12,7 @@
 <%- include('_includes/footer', { siteConfig }) %>
 
 <% if (post && post.navigation && post.navigation.length) { %>
-<nav class="nav">
+<nav class="nav__bottom">
     <% post.navigation.forEach(function(item) { %>
         <a href="<%- item.href %>"><%- item.body %></a>
     <% }) %>
