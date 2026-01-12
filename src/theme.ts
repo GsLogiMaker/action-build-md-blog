@@ -95,10 +95,10 @@ export async function prepareTheme(configuration: ConfigurationType) {
 
       let { title, date, permalink, externalUrl } = parsed.attributes;
 
-      if (!date) {
-        date = dayjs().format('ddd, MMMM DD, YYYY');
+      if (!parsed.attributes.date) {
+        parsed.attributes.date = dayjs().format('ddd, MMMM DD, YYYY');
       } else {
-        date = dayjs(date).format('ddd, MMMM DD, YYYY');
+        parsed.attributes.date = dayjs(parsed.attributes.date).format('ddd, MMMM DD, YYYY');
       }
 
       const postHtml = htmlConverter.makeHtml(parsed.body);

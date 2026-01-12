@@ -307,11 +307,11 @@ function prepareTheme(configuration) {
                     const content = fs_1.default.readFileSync(contentFilePath, 'utf-8');
                     const parsed = (0, front_matter_1.default)(content);
                     let { title, date, permalink, externalUrl } = parsed.attributes;
-                    if (!date) {
-                        date = (0, dayjs_1.default)().format('ddd, MMMM DD, YYYY');
+                    if (!parsed.attributes.date) {
+                        parsed.attributes.date = (0, dayjs_1.default)().format('ddd, MMMM DD, YYYY');
                     }
                     else {
-                        date = (0, dayjs_1.default)(date).format('ddd, MMMM DD, YYYY');
+                        parsed.attributes.date = (0, dayjs_1.default)(parsed.attributes.date).format('ddd, MMMM DD, YYYY');
                     }
                     const postHtml = htmlConverter.makeHtml(parsed.body);
                     const fullFileName = (permalink || (0, slugify_1.default)(title).toLowerCase()).replace(/^\//, '');
