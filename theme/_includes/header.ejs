@@ -42,17 +42,15 @@
         <% }); %>
     </div>
 
-    <div class="nav__right">
-        <% Object.entries(siteConfig.social || {}).forEach(([platform, info]) => { %>
-            <% if (!info) return; %>
-            <% 
+    <div class="nav__right"><%
+        Object.entries(siteConfig.social || {}).forEach(([platform, info]) => {
+        %><% if (!info) return;
+        %><% 
                 // Build attribute string from all keys except "body"
                 const attrs = Object.entries(info)
                     .filter(([key]) => key !== 'body')
                     .map(([key, value]) => `${key}="${value}"`)
                     .join(' ');
-            %>
-            <a <%- attrs %>><%- info.body %></a>
-        <% }); %>
-    </div>
+        %><a <%- attrs %>><%- info.body %></a><% });
+        %></div>
 </nav>

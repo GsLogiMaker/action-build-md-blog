@@ -13,10 +13,6 @@
 
 <% if (post && post.navigation && post.navigation.length) { %>
 <nav class="nav nav__bottom">
-    <div>
-    <% post.navigation.forEach(function(item) { %>
-        <a href="<%- item.href %>"><%- item.body %></a>
-    <% }) %>
-    </div>
+    <div><% post.navigation.forEach(function(item) { %><a href="<%- item.href %>"><%- item.body %></a><% }) %></div>
 </nav>
 <% } %>
