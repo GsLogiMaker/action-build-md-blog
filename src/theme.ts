@@ -114,20 +114,12 @@ export async function prepareTheme(configuration: ConfigurationType) {
 
       parsed.attributes.permalink = path.join('/', siteConfig.baseUrl, nestedPostDir, fileName);
       const postMeta = {
-          html: postHtml,
-          ...parsed.attributes
+        html: postHtml,
+        ...parsed.attributes
       };
 
-      const jsonOutputPath = path.join(
-          outputDir,
-          nestedPostDir,
-          `${fileName}.json`
-      );
-      fs.writeFileSync(
-          jsonOutputPath,
-          JSON.stringify(parsed.attributes, null, 2),
-          'utf-8'
-      );
+      const jsonOutputPath = path.join(outputDir, nestedPostDir, `${fileName}.json`);
+      fs.writeFileSync(jsonOutputPath, JSON.stringify(parsed.attributes, null, 2), 'utf-8');
 
       const postFileTemplate = path.join(themePath, 'post.ejs');
       const populatedTemplate = await ejs.renderFile(postFileTemplate, {
