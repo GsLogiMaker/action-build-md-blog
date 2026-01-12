@@ -297,68 +297,94 @@ function prepareTheme(configuration) {
             });
         }
         function prepareBlogPosts() {
-          return __awaiter(this, void 0, void 0, function* () {
-              (0, core_1.info)('Preparing blog posts');
-              const postFiles = fs_1.default.readdirSync(postsDir);
-              const posts = [];
-              for (let contentFile of postFiles) {
-                  const contentFilePath = path_1.default.join(postsDir, contentFile);
-                  const content = fs_1.default.readFileSync(contentFilePath, 'utf-8');
-                  const parsed = (0, front_matter_1.default)(content);
-                  let { title, date, permalink, externalUrl } = parsed.attributes;
-                  if (!date) {
-                      date = (0, dayjs_1.default)().format('ddd, MMMM DD, YYYY');
+            return __awaiter(this, void 0, void 0, function* () {
+                (0, core_1.info)('Preparing blog posts');
+                const postFiles = fs_1.default.readdirSync(postsDir);
+                const posts = [];
+                const siteConfig = require(path_1.default.join(configuration.repoPath, './site.json'));
+                for (let contentFile of postFiles) {
+                    const contentFilePath = path_1.default.join(postsDir, contentFile);
+                    const content = fs_1.default.readFileSync(contentFilePath, 'utf-8');
+                    const parsed = (0, front_matter_1.default)(content);
+                    let { title, date, permalink, externalUrl } = parsed.attributes;
+                    if (!date) {
+                        date = (0, dayjs_1.default)().format('ddd, MMMM DD, YYYY');
                     }
                     else {
-                      date = (0, dayjs_1.default)(date).format('ddd, MMMM DD, YYYY');
-                  }
-                  const postHtml = htmlConverter.makeHtml(parsed.body);
-                  const fullFileName = (permalink || (0, slugify_1.default)(title).toLowerCase()).replace(/^\//, '');
-                  const fullFileNameParts = fullFileName.replace(/\/$/, '').split('/');
-                  const fileName = fullFileNameParts.pop() || '';
-                  const nestedPostDir = fullFileNameParts.join('/');
-                  if (nestedPostDir) {
-                      fs_extra_1.default.ensureDirSync(path_1.default.join(outputDir, nestedPostDir));
-                  }
-
-                  const siteConfig = require(path_1.default.join(configuration.repoPath, './site.json'));
-                  parsed.attributes.permalink = path_1.default.join('/', siteConfig.baseUrl, nestedPostDir, fileName);
-                  const postMeta = {
-                      html: postHtml,
-                      ...parsed.attributes
-                  };
-
-                  const jsonOutputPath = path_1.default.join(
-                      outputDir,
-                      nestedPostDir,
-                      `${fileName}.json`
-                  );
-
-                  fs_1.default.writeFileSync(
-                      jsonOutputPath,
-                      JSON.stringify(parsed.attributes, null, 2),
-                      'utf-8'
-                  );
-
-                  const postFileTemplate = path_1.default.join(themePath, 'post.ejs');
-                  const populatedTemplate = yield ejs_1.default.renderFile(postFileTemplate, {
-                      post: postMeta,
-                      siteConfig
-                  });
-
-                  fs_1.default.writeFileSync(
-                      path_1.default.join(outputDir, nestedPostDir, `${fileName}.html`),
-                      populatedTemplate
-                  );
-
-                  posts.push(postMeta);
-              }
-                posts.sort(function(a, b){
-                  return new Date(a.date) - new Date(b.date);
-              });
-              return posts;
-          });
-      }
+                        date = (0, dayjs_1.default)(date).format('ddd, MMMM DD, YYYY');
+                    }
+                    const postHtml = htmlConverter.makeHtml(parsed.body);
+                    const fullFileName = (permalink || (0, slugify_1.default)(title).toLowerCase()).replace(/^\//, '');
+                    const fullFileNameParts = fullFileName.replace(/\/$/, '').split('/');
+                    const fileName = fullFileNameParts.pop() || '';
+                    const nestedPostDir = fullFileNameParts.join('/');
+                    if (nestedPostDir) {
+                        fs_extra_1.default.ensureDirSync(path_1.default.join(outputDir, nestedPostDir));
+                    }
+                    parsed.attributes.permalink = path_1.default.join('/', siteConfig.baseUrl, nestedPostDir, fileName);
+                    const postMeta = Object.assign({ html: postHtml }, parsed.attributes);
+                    const jsonOutputPath = path_1.default.join(outputDir, nestedPostDir, `${fileName}.json`);
+                    fs_1.default.writeFileSync(jsonOutputPath, JSON.stringify(parsed.attributes, null, 2), 'utf-8');
+                    const postFileTemplate = path_1.default.join(themePath, 'post.ejs');
+                    const populatedTemplate = yield ejs_1.default.renderFile(postFileTemplate, {
+                        post: postMeta,
+                        siteConfig
+                    });
+                    fs_1.default.writeFileSync(path_1.default.join(outputDir, nestedPostDir, `${fileName}.html`), populatedTemplate);
+                    posts.push(postMeta);
+                }
+                return posts;
+            });
+        }
+        function generateRssFeed(posts, siteConfig) {
+            var _a;
+            return __awaiter(this, void 0, void 0, function* () {
+                (0, core_1.info)('Generating RSS feed');
+                const { Feed } = __nccwpck_require__(4730);
+                const siteUrl = siteConfig.cname
+                    ? `https://${siteConfig.cname}`
+                    : `https://${configuration.repositoryName.split('/')[0]}.github.io`;
+                const feed = new Feed({
+                    title: siteConfig.title,
+                    description: siteConfig.seo.description,
+                    id: siteUrl,
+                    link: siteUrl,
+                    language: 'en',
+                    image: `${siteUrl}/img/logo.png`,
+                    favicon: `${siteUrl}/favicon.ico`,
+                    copyright: `© ${new Date().getFullYear()} ${siteConfig.owner.name}`,
+                    updated: new Date(),
+                    feedLinks: {
+                        rss: `${siteUrl}/rss.xml`
+                    },
+                    author: {
+                        name: siteConfig.owner.name,
+                        email: siteConfig.owner.email,
+                        link: ((_a = siteConfig.social) === null || _a === void 0 ? void 0 : _a.github) ? `https://github.com/${siteConfig.social.github}` : siteUrl
+                    }
+                });
+                for (const post of posts) {
+                    const url = post.externalUrl || `${siteUrl}${post.permalink}`;
+                    feed.addItem({
+                        title: post.title,
+                        id: url,
+                        link: url,
+                        description: `${post.html.substring(0, 200)}...`,
+                        content: post.html,
+                        author: [
+                            {
+                                name: siteConfig.owner.name,
+                                email: siteConfig.owner.email
+                            }
+                        ],
+                        date: new Date(post.date)
+                    });
+                }
+                fs_1.default.writeFileSync(path_1.default.join(outputDir, 'rss.xml'), feed.rss2());
+                // Optionally, also generate Atom feed
+                fs_1.default.writeFileSync(path_1.default.join(outputDir, 'atom.xml'), feed.atom1());
+            });
+        }
         function prepareAbout() {
             return __awaiter(this, void 0, void 0, function* () {
                 (0, core_1.info)('Preparing about page');
@@ -381,18 +407,7 @@ function prepareTheme(configuration) {
         function prepareHome(posts) {
             return __awaiter(this, void 0, void 0, function* () {
                 (0, core_1.info)('Preparing homepage');
-                posts.sort((a, b) => {
-                  const dateA = dayjs_1.default(a.date);
-                  const dateB = dayjs_1.default(b.date);
-                
-                  // Compare the months first
-                  if (dateA.month() !== dateB.month()) {
-                    return dateB.month() - dateA.month();
-                  }
-                
-                  // If the months are the same, compare the days
-                  return dateB.date() - dateA.date();
-                });
+                posts.sort((a, b) => (0, dayjs_1.default)(b.date).date() - (0, dayjs_1.default)(a.date).date());
                 const groupedPosts = posts.reduce((aggMap, postItem) => {
                     const year = (0, dayjs_1.default)(postItem.date).format('YYYY');
                     aggMap.set(year, [...(aggMap.get(year) || []), postItem]);
@@ -419,6 +434,7 @@ function prepareTheme(configuration) {
         yield prepareAbout();
         yield prepareStaticPages();
         const posts = yield prepareBlogPosts();
+        yield generateRssFeed(posts, siteConfig);
         yield prepareHome(posts);
         yield copyStaticAssets();
     });
@@ -24189,6 +24205,14 @@ function wrappy (fn, cb) {
 /***/ ((module) => {
 
 module.exports = eval("require")("encoding");
+
+
+/***/ }),
+
+/***/ 4730:
+/***/ ((module) => {
+
+module.exports = eval("require")("feed");
 
 
 /***/ }),
